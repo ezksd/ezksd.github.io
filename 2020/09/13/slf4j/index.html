@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="如题slf4j是logger的一套抽象，在LoggerFactory里获取实现。但是slf4j里有StaticLoggerBinder符号引用，却没有对应的class文件。 1StaticLoggerBinder.getSingleton(); 该文件在其他的各种实现里，比如lo4j。这两者是分开编译的，如果slf4j依赖一个特定的实现会导致循环依赖，而什么都不做StaticLoggerBinde">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Lsf4j和模块化">
+<meta property="og:url" content="https://ezksd.github.io/2020/09/13/slf4j/index.html">
+<meta property="og:site_name" content="Ezksd">
+<meta property="og:description" content="如题slf4j是logger的一套抽象，在LoggerFactory里获取实现。但是slf4j里有StaticLoggerBinder符号引用，却没有对应的class文件。 1StaticLoggerBinder.getSingleton(); 该文件在其他的各种实现里，比如lo4j。这两者是分开编译的，如果slf4j依赖一个特定的实现会导致循环依赖，而什么都不做StaticLoggerBinde">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-09-13T17:48:01.000Z">
+<meta property="article:modified_time" content="2021-06-26T13:14:30.033Z">
+<meta property="article:author" content="ezksd">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon-192x192.png">
+        
+      
+    
+    <!-- title -->
+    <title>Lsf4j和模块化</title><meta name="robots" content="noindex">
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+      
+<link rel="stylesheet" href="/css/rtl.css">
+
+    
+    <!-- rss -->
+    
+    
+      <link rel="alternate" href="/true" title="Ezksd" type="application/atom+xml" />
+    
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://ezksd.github.io/2020/09/13/slf4j/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://ezksd.github.io/2020/09/13/slf4j/&text=Lsf4j和模块化"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://ezksd.github.io/2020/09/13/slf4j/&title=Lsf4j和模块化"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://ezksd.github.io/2020/09/13/slf4j/&is_video=false&description=Lsf4j和模块化"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Lsf4j和模块化&body=Check out this article: https://ezksd.github.io/2020/09/13/slf4j/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://ezksd.github.io/2020/09/13/slf4j/&title=Lsf4j和模块化"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://ezksd.github.io/2020/09/13/slf4j/&title=Lsf4j和模块化"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://ezksd.github.io/2020/09/13/slf4j/&title=Lsf4j和模块化"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://ezksd.github.io/2020/09/13/slf4j/&title=Lsf4j和模块化"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://ezksd.github.io/2020/09/13/slf4j/&name=Lsf4j和模块化&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://ezksd.github.io/2020/09/13/slf4j/&t=Lsf4j和模块化"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E9%A2%98"><span class="toc-number">1.</span> <span class="toc-text">如题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%82%A3slf4j%E6%98%AF%E6%80%8E%E4%B9%88%E5%81%9A%E7%9A%84"><span class="toc-number">2.</span> <span class="toc-text">那slf4j是怎么做的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#module%E5%92%8CService-Provider"><span class="toc-number">3.</span> <span class="toc-text">module和Service Provider</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Service-Provider-Interface-SPI"><span class="toc-number">4.</span> <span class="toc-text">Service Provider Interface (SPI)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%86%E6%98%AF"><span class="toc-number">5.</span> <span class="toc-text">但是</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Lsf4j和模块化
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">ezksd</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2020-09-13T17:48:01.000Z" itemprop="datePublished">2020-09-13</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/java/">java</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="如题"><a href="#如题" class="headerlink" title="如题"></a>如题</h2><p>slf4j是logger的一套抽象，在<code>LoggerFactory</code>里获取实现。但是slf4j里有<code>StaticLoggerBinder</code>符号引用，却没有对应的class文件。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">StaticLoggerBinder.getSingleton();</span><br></pre></td></tr></table></figure>
+<p>该文件在其他的各种实现里，比如lo4j。这两者是分开编译的，如果slf4j依赖一个特定的实现会导致循环依赖，而什么都不做<code>StaticLoggerBinder</code>在编译时会找不到定义。</p>
+<h2 id="那slf4j是怎么做的"><a href="#那slf4j是怎么做的" class="headerlink" title="那slf4j是怎么做的"></a>那slf4j是怎么做的</h2><p>slf4j的源码(1.7.30)文件结构如下：<br>org<br>└── slf4j<br>    ├── <em>impl</em><br>    │   ├── package.html<br>    │   ├── StaticLoggerBinder.java<br>    │   ├── <em>StaticMarkerBinder.java</em><br>    │   └── StaticMDCBinder.java</p>
+<p>可以注意到源码里有的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">StaticMarkerBinder</span> <span class="keyword">implements</span> <span class="title">MarkerFactoryBinder</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * The unique instance of this class.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> StaticMarkerBinder SINGLETON = <span class="keyword">new</span> StaticMarkerBinder();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">StaticMarkerBinder</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException(<span class="string">&quot;This code should never make it into the jar&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Return the singleton of this class.</span></span><br><span class="line"><span class="comment">     * </span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> the StaticMarkerBinder singleton</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@since</span> 1.7.14</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> StaticMarkerBinder <span class="title">getSingleton</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> SINGLETON;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Currently this method always returns an instance of </span></span><br><span class="line"><span class="comment">     * &#123;<span class="doctag">@link</span> BasicMarkerFactory&#125;.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> IMarkerFactory <span class="title">getMarkerFactory</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException(<span class="string">&quot;This code should never make it into the jar&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Currently, this method returns the class name of</span></span><br><span class="line"><span class="comment">     * &#123;<span class="doctag">@link</span> BasicMarkerFactory&#125;.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getMarkerFactoryClassStr</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedOperationException(<span class="string">&quot;This code should never make it into the jar&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>再看到pom.xml，打包之前把impl文件夹删了。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-antrun-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">phase</span>&gt;</span>process-classes<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">       <span class="tag">&lt;<span class="name">goal</span>&gt;</span>run<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">tasks</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">echo</span>&gt;</span>Removing slf4j-api&#x27;s dummy StaticLoggerBinder and StaticMarkerBinder<span class="tag">&lt;/<span class="name">echo</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">delete</span> <span class="attr">dir</span>=<span class="string">&quot;target/classes/org/slf4j/impl&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">tasks</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>🤔️稍微有点难看。新版也就是slf4j2.0，用的是java9的module配合Service Provider。</p>
+<h2 id="module和Service-Provider"><a href="#module和Service-Provider" class="headerlink" title="module和Service Provider"></a>module和Service Provider</h2><p>java9的module一共新增了五个关键字，其中<code>exports</code> <code>requires</code>是模块化必须的，<code>opens</code>是反射的后门，<code>uses</code>和<code>provides</code>都与Service Provider相关。<br>可见Service在模块化中的分量(约等于<mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.816ex" xmlns="http://www.w3.org/2000/svg" width="1.795ex" height="2.773ex" role="img" focusable="false" viewBox="0 -864.9 793.6 1225.5" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><path id="MJX-2-TEX-N-32" d="M109 429Q82 429 66 447T50 491Q50 562 103 614T235 666Q326 666 387 610T449 465Q449 422 429 383T381 315T301 241Q265 210 201 149L142 93L218 92Q375 92 385 97Q392 99 409 186V189H449V186Q448 183 436 95T421 3V0H50V19V31Q50 38 56 46T86 81Q115 113 136 137Q145 147 170 174T204 211T233 244T261 278T284 308T305 340T320 369T333 401T340 431T343 464Q343 527 309 573T212 619Q179 619 154 602T119 569T109 550Q109 549 114 549Q132 549 151 535T170 489Q170 464 154 447T109 429Z"></path><path id="MJX-2-TEX-N-35" d="M164 157Q164 133 148 117T109 101H102Q148 22 224 22Q294 22 326 82Q345 115 345 210Q345 313 318 349Q292 382 260 382H254Q176 382 136 314Q132 307 129 306T114 304Q97 304 95 310Q93 314 93 485V614Q93 664 98 664Q100 666 102 666Q103 666 123 658T178 642T253 634Q324 634 389 662Q397 666 402 666Q410 666 410 648V635Q328 538 205 538Q174 538 149 544L139 546V374Q158 388 169 396T205 412T256 420Q337 420 393 355T449 201Q449 109 385 44T229 -22Q148 -22 99 32T50 154Q50 178 61 192T84 210T107 214Q132 214 148 197T164 157Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mfrac"><g data-mml-node="mn" transform="translate(220,394) scale(0.707)"><use data-c="32" xlink:href="#MJX-2-TEX-N-32"></use></g><g data-mml-node="mn" transform="translate(220,-345) scale(0.707)"><use data-c="35" xlink:href="#MJX-2-TEX-N-35"></use></g><rect width="553.6" height="60" x="120" y="220"></rect></g></g></g></svg></mjx-container>)。<del>加s有瘾是吧</del></p>
+<h2 id="Service-Provider-Interface-SPI"><a href="#Service-Provider-Interface-SPI" class="headerlink" title="Service Provider Interface (SPI)"></a>Service Provider Interface (SPI)</h2><p>和普通的interface没有什么不同，假设为A。仅需在module-info.java中加入<code>uses A</code>表明该interface是一个SPI，在实现B的module中加入<code>provides A with B</code>。而使用时用Service Loader查找。</p>
+<p>简化代码：</p>
+<p>文件树：<br>.<br>├── logger-api<br>│   ├── pom.xml<br>│   ├── src<br>│   │   ├── main<br>│   │   │   └── java<br>│   │   │       ├── module-info.java<br>│   │   │       └── org<br>│   │   │           └── ezksd<br>│   │   │               ├── App.java<br>│   │   │               ├── LoggerFactory.java<br>│   │   │               └── Logger.java<br>│   └── target<br>├── logger-impl<br>│   ├── pom.xml<br>│   ├── src<br>│   │   ├── main<br>│   │   │   └── java<br>│   │   │       ├── module-info.java<br>│   │   │       └── org<br>│   │   │           └── ezksd<br>│   │   │               └── impl<br>│   │   │                   ├── FileLoggerFactoryImpl.java<br>│   │   │                   └── FileLogger.java<br>│   └── target<br>├── pom.xml</p>
+<p>module: logger-api:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Logger</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">log</span><span class="params">(String s)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">LoggerFactory</span> </span>&#123;</span><br><span class="line">    <span class="function">Logger <span class="title">getLogger</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">App</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">( String[] args )</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        ServiceLoader&lt;LoggerFactory&gt; loader = ServiceLoader.load(LoggerFactory.class);</span><br><span class="line">        Iterator&lt;LoggerFactory&gt; it = loader.iterator();</span><br><span class="line">        LoggerFactory factory;</span><br><span class="line">        <span class="keyword">if</span>(it.hasNext())&#123;</span><br><span class="line">            factory = it.next();</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        Logger logger = factory.getLogger();</span><br><span class="line">        logger.log(<span class="string">&quot;hehe&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">module</span> logger.api &#123;</span><br><span class="line">    <span class="keyword">exports</span> org.ezksd;</span><br><span class="line">    uses LoggerFactory;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>module: logger-impl</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FileLogger</span> <span class="keyword">implements</span> <span class="title">Logger</span> </span>&#123;</span><br><span class="line">    FileChannel channel;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">FileLogger</span><span class="params">(String fileName)</span></span>&#123;</span><br><span class="line">        <span class="keyword">var</span> file = Paths.get(fileName);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            channel = FileChannel.open(file, StandardOpenOption.WRITE,StandardOpenOption.CREATE);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">log</span><span class="params">(String s)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">var</span> buffer = ByteBuffer.wrap(s.getBytes());</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            channel.write(buffer);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">FileLoggerFactoryImpl</span> <span class="keyword">implements</span> <span class="title">LoggerFactory</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Logger <span class="title">getLogger</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> FileLogger(<span class="string">&quot;test.log&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">module</span> logger.impl &#123;</span><br><span class="line">    <span class="keyword">requires</span> logger.api;</span><br><span class="line">    <span class="keyword">exports</span> org.ezksd.impl;</span><br><span class="line">    provides LoggerFactory with FileLoggerFactoryImpl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>执行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -p logger-api/target/logger-api-1.0-SNAPSHOT.jar:logger-impl/target/logger-impl-1.0-SNAPSHOT.jar -m logger.api/org.ezksd.App</span><br></pre></td></tr></table></figure>
+<h2 id="但是"><a href="#但是" class="headerlink" title="但是"></a>但是</h2><p>Service Loader在java 6中就已经出现，比如加载jdbc驱动，nio获取对应平台实现都有用到。和java 9以后使用方式有一些区别，只需要在/META-INF/services中加上文件名为spi全限定名，内容为实现类全限定名的文件。原理很直接，读取对应文件，<code>Class.forName</code>加载对应类调用无参构造器返回实例。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> S <span class="title">nextService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!hasNextService())</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> NoSuchElementException();</span><br><span class="line">    String cn = nextName;</span><br><span class="line">    nextName = <span class="keyword">null</span>;</span><br><span class="line">    Class&lt;?&gt; c = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        c = Class.forName(cn, <span class="keyword">false</span>, loader);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (ClassNotFoundException x) &#123;</span><br><span class="line">        fail(service,</span><br><span class="line">             <span class="string">&quot;Provider &quot;</span> + cn + <span class="string">&quot; not found&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (!service.isAssignableFrom(c)) &#123;</span><br><span class="line">        fail(service,</span><br><span class="line">             <span class="string">&quot;Provider &quot;</span> + cn  + <span class="string">&quot; not a subtype&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        S p = service.cast(c.newInstance());</span><br><span class="line">        providers.put(cn, p);</span><br><span class="line">        <span class="keyword">return</span> p;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable x) &#123;</span><br><span class="line">        fail(service,</span><br><span class="line">             <span class="string">&quot;Provider &quot;</span> + cn + <span class="string">&quot; could not be instantiated&quot;</span>,</span><br><span class="line">             x);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> Error();          <span class="comment">// This cannot happen</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<!-- flag of hidden posts -->
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E9%A2%98"><span class="toc-number">1.</span> <span class="toc-text">如题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%82%A3slf4j%E6%98%AF%E6%80%8E%E4%B9%88%E5%81%9A%E7%9A%84"><span class="toc-number">2.</span> <span class="toc-text">那slf4j是怎么做的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#module%E5%92%8CService-Provider"><span class="toc-number">3.</span> <span class="toc-text">module和Service Provider</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Service-Provider-Interface-SPI"><span class="toc-number">4.</span> <span class="toc-text">Service Provider Interface (SPI)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BD%86%E6%98%AF"><span class="toc-number">5.</span> <span class="toc-text">但是</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://ezksd.github.io/2020/09/13/slf4j/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://ezksd.github.io/2020/09/13/slf4j/&text=Lsf4j和模块化"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://ezksd.github.io/2020/09/13/slf4j/&title=Lsf4j和模块化"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://ezksd.github.io/2020/09/13/slf4j/&is_video=false&description=Lsf4j和模块化"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Lsf4j和模块化&body=Check out this article: https://ezksd.github.io/2020/09/13/slf4j/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://ezksd.github.io/2020/09/13/slf4j/&title=Lsf4j和模块化"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://ezksd.github.io/2020/09/13/slf4j/&title=Lsf4j和模块化"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://ezksd.github.io/2020/09/13/slf4j/&title=Lsf4j和模块化"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://ezksd.github.io/2020/09/13/slf4j/&title=Lsf4j和模块化"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://ezksd.github.io/2020/09/13/slf4j/&name=Lsf4j和模块化&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://ezksd.github.io/2020/09/13/slf4j/&t=Lsf4j和模块化"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2015-2021
+    ezksd
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+
+<link rel="stylesheet" href="/lib/justified-gallery/css/justifiedGallery.min.css">
+
+
+    <!-- jquery -->
+
+<script src="/lib/jquery/jquery.min.js"></script>
+
+
+<script src="/lib/justified-gallery/js/jquery.justifiedGallery.min.js"></script>
+
+<!-- clipboard -->
+
+  
+<script src="/lib/clipboard/clipboard.min.js"></script>
+
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-104406812-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-104406812-1');
+    </script>
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'ezksd-1';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
+</body>
+</html>

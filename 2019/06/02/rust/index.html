@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="这世界有太多的传教士了，比如一部分Haskell传教士会拿一个两行的快排，但是不告诉你那不是原地排序，而等价的原地排序可能比java还长。 那Rust真的有传教士说的那么美吗，是否遗漏了什么。 trait不是类型，同时也不支持子类型当然，这可能是设计需要，但让人难受但地方，我先把他归类为缺点。 123fn compare(a: Ord,b: Ord) -&gt; bool&amp;#123;    a &amp;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Rust的缺点">
+<meta property="og:url" content="https://ezksd.github.io/2019/06/02/rust/index.html">
+<meta property="og:site_name" content="Ezksd">
+<meta property="og:description" content="这世界有太多的传教士了，比如一部分Haskell传教士会拿一个两行的快排，但是不告诉你那不是原地排序，而等价的原地排序可能比java还长。 那Rust真的有传教士说的那么美吗，是否遗漏了什么。 trait不是类型，同时也不支持子类型当然，这可能是设计需要，但让人难受但地方，我先把他归类为缺点。 123fn compare(a: Ord,b: Ord) -&gt; bool&amp;#123;    a &amp;">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2019-06-02T19:17:15.000Z">
+<meta property="article:modified_time" content="2021-06-26T13:14:30.033Z">
+<meta property="article:author" content="ezksd">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon-192x192.png">
+        
+      
+    
+    <!-- title -->
+    <title>Rust的缺点</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+      
+<link rel="stylesheet" href="/css/rtl.css">
+
+    
+    <!-- rss -->
+    
+    
+      <link rel="alternate" href="/true" title="Ezksd" type="application/atom+xml" />
+    
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2020/06/23/java-14/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2019/05/06/custom-zsh-theme/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://ezksd.github.io/2019/06/02/rust/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://ezksd.github.io/2019/06/02/rust/&text=Rust的缺点"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://ezksd.github.io/2019/06/02/rust/&title=Rust的缺点"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://ezksd.github.io/2019/06/02/rust/&is_video=false&description=Rust的缺点"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Rust的缺点&body=Check out this article: https://ezksd.github.io/2019/06/02/rust/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://ezksd.github.io/2019/06/02/rust/&title=Rust的缺点"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://ezksd.github.io/2019/06/02/rust/&title=Rust的缺点"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://ezksd.github.io/2019/06/02/rust/&title=Rust的缺点"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://ezksd.github.io/2019/06/02/rust/&title=Rust的缺点"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://ezksd.github.io/2019/06/02/rust/&name=Rust的缺点&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://ezksd.github.io/2019/06/02/rust/&t=Rust的缺点"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#trait%E4%B8%8D%E6%98%AF%E7%B1%BB%E5%9E%8B%EF%BC%8C%E5%90%8C%E6%97%B6%E4%B9%9F%E4%B8%8D%E6%94%AF%E6%8C%81%E5%AD%90%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.</span> <span class="toc-text">trait不是类型，同时也不支持子类型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BB%B6%E6%97%B6%E6%B1%82%E5%80%BC"><span class="toc-number">2.</span> <span class="toc-text">延时求值</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1"><span class="toc-number">3.</span> <span class="toc-text">面向对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%95%E7%94%A8"><span class="toc-number">4.</span> <span class="toc-text">引用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="toc-number">4.1.</span> <span class="toc-text">生命周期</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#TRPL"><span class="toc-number">5.</span> <span class="toc-text">TRPL</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%A6%E4%B9%A0%E6%88%90%E6%9C%AC"><span class="toc-number">6.</span> <span class="toc-text">学习成本</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Rust的缺点
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">ezksd</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2019-06-02T19:17:15.000Z" itemprop="datePublished">2019-06-02</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/rust/">rust</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <p>这世界有太多的传教士了，比如<strong>一部分</strong>Haskell传教士会拿一个两行的快排，但是不告诉你那不是原地排序，而等价的原地排序可能比java还长。</p>
+<p>那Rust真的有传教士说的那么美吗，是否遗漏了什么。</p>
+<h2 id="trait不是类型，同时也不支持子类型"><a href="#trait不是类型，同时也不支持子类型" class="headerlink" title="trait不是类型，同时也不支持子类型"></a>trait不是类型，同时也不支持子类型</h2><p>当然，这可能是设计需要，但让人难受但地方，我先把他归类为缺点。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">compare</span></span>(a: <span class="built_in">Ord</span>,b: <span class="built_in">Ord</span>) -&gt; <span class="built_in">bool</span>&#123;</span><br><span class="line">    a &lt; b</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">error[E0038]: the trait `std::cmp::Ord` cannot be made into an object</span><br><span class="line"> --&gt; src/main.rs:2:15</span><br><span class="line">  |</span><br><span class="line">2 | fn compare(a: Ord,b: Ord) -&gt; bool&#123;</span><br><span class="line">  |               ^^^ the trait `std::cmp::Ord` cannot be made into an object</span><br><span class="line">  |</span><br><span class="line">  = note: the trait cannot use `Self` as a <span class="built_in">type</span> parameter <span class="keyword">in</span> the supertraits or where-clauses</span><br></pre></td></tr></table></figure>
+
+<p>不过你可以用类型推导，这里要求该类型实现了<code>Ord</code> trait， 于是我们就可以用<code>&lt;</code>来比较了。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">compare</span></span>&lt;A:<span class="built_in">Ord</span>&gt;(a: A,b: A) -&gt; <span class="built_in">bool</span>&#123;</span><br><span class="line">    a &lt; b</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这与子类型有本质的区别，比如在返回值位置就没办法这么写了。返回值在函数内部已经给出，推导的时候就对不上了。</p>
+<blockquote>
+<p>再愛你，依然是兩個人～</p>
+</blockquote>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">compare</span></span>&lt;A:<span class="built_in">Ord</span>&gt;() -&gt; A&#123;</span><br><span class="line">    <span class="number">1</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">error[E0308]: mismatched types</span><br><span class="line"> --&gt; src/main.rs:3:5</span><br><span class="line">  |</span><br><span class="line">2 | fn compare&lt;A:Ord&gt;() -&gt; A&#123;</span><br><span class="line">  |                        - expected `A` because of <span class="built_in">return</span> <span class="built_in">type</span></span><br><span class="line">3 |     1</span><br><span class="line">  |     ^ expected <span class="built_in">type</span> parameter, found <span class="built_in">integer</span></span><br><span class="line">  |</span><br><span class="line">  = note: expected <span class="built_in">type</span> `A`</span><br><span class="line">             found <span class="built_in">type</span> `&#123;<span class="built_in">integer</span>&#125;`</span><br></pre></td></tr></table></figure>
+
+<p>不是所有的值都有一个明确的类型，比如闭包，这个时候就要存在类型：</p>
+<blockquote>
+<p>世界上没有两片相同的叶子，Rust里也没有两个的闭包</p>
+</blockquote>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">counter</span></span>() -&gt; <span class="keyword">impl</span> <span class="built_in">Fn</span>() -&gt; <span class="built_in">i32</span>&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut</span> i = <span class="number">0</span>;</span><br><span class="line">    || &#123;</span><br><span class="line">        <span class="keyword">let</span> r = i;</span><br><span class="line">        i = i + <span class="number">1</span>;</span><br><span class="line">        r</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>与此同时存在类型是一个非常难用的东西，他对应存在量词<mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: 0" xmlns="http://www.w3.org/2000/svg" width="1.258ex" height="1.57ex" role="img" focusable="false" viewBox="0 -694 556 694" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><path id="MJX-1-TEX-N-2203" d="M56 661T56 674T70 694H487Q497 686 500 679V15Q497 10 487 1L279 0H70Q56 7 56 20T70 40H460V327H84Q70 334 70 347T84 367H460V654H70Q56 661 56 674Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mi"><use data-c="2203" xlink:href="#MJX-1-TEX-N-2203"></use></g></g></g></svg></mjx-container>，而范型对应全称量词<mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.05ex" xmlns="http://www.w3.org/2000/svg" width="1.258ex" height="1.62ex" role="img" focusable="false" viewBox="0 -694 556 716" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><path id="MJX-1-TEX-N-2200" d="M0 673Q0 684 7 689T20 694Q32 694 38 680T82 567L126 451H430L473 566Q483 593 494 622T512 668T519 685Q524 694 538 694Q556 692 556 674Q556 670 426 329T293 -15Q288 -22 278 -22T263 -15Q260 -11 131 328T0 673ZM414 410Q414 411 278 411T142 410L278 55L414 410Z"></path></defs><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mi"><use data-c="2200" xlink:href="#MJX-1-TEX-N-2200"></use></g></g></g></svg></mjx-container>。</p>
+<h2 id="延时求值"><a href="#延时求值" class="headerlink" title="延时求值"></a>延时求值</h2><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">Iterator</span></span>&#123;</span><br><span class="line">  <span class="class"><span class="keyword">type</span> <span class="title">Item</span></span>;</span><br><span class="line">  <span class="function"><span class="keyword">fn</span> <span class="title">next</span></span>(&amp;<span class="keyword">mut</span> <span class="keyword">self</span>) -&gt; <span class="built_in">Option</span>&lt;Self::Item&gt;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>听上去很美，但假设他不做所谓的延时求值，甚至都没有办法抽象出来一套东西。</p>
+<p>比如map方法并没有立刻转换，而是直接把原来的Iterator和函数包在了结构体里：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">map</span></span>&lt;B, F&gt;(<span class="keyword">self</span>, f: F) -&gt; Map&lt;<span class="keyword">Self</span>, F&gt; <span class="keyword">where</span></span><br><span class="line"><span class="keyword">Self</span>: <span class="built_in">Sized</span>, F: <span class="built_in">FnMut</span>(Self::Item) -&gt; B,</span><br><span class="line">&#123;</span><br><span class="line">  Map::new(<span class="keyword">self</span>, f)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>假如你想把他的返回值改成<code>Iterator&lt;Item=B&gt;</code>是编译不过的，因为trait不是类型。这里需要一个具体的类型，比如结构体或者枚举，于是你会看到大量这样的代码：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">step_by</span></span>(<span class="keyword">self</span>, step: <span class="built_in">usize</span>) -&gt; StepBy&lt;<span class="keyword">Self</span>&gt;</span><br><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">chain</span></span>&lt;U&gt;(<span class="keyword">self</span>, other: U) -&gt; Chain&lt;<span class="keyword">Self</span>, U::IntoIter&gt;</span><br><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">zip</span></span>&lt;U&gt;(<span class="keyword">self</span>, other: U) -&gt; Zip&lt;<span class="keyword">Self</span>, U::IntoIter&gt;</span><br><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">map</span></span>&lt;B, F&gt;(<span class="keyword">self</span>, f: F) -&gt; Map&lt;<span class="keyword">Self</span>, F&gt;</span><br><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">filter</span></span>&lt;P&gt;(<span class="keyword">self</span>, predicate: P) -&gt; Filter&lt;<span class="keyword">Self</span>, P&gt;</span><br><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">enumerate</span></span>(<span class="keyword">self</span>) -&gt; Enumerate&lt;<span class="keyword">Self</span>&gt; </span><br><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">peekable</span></span>(<span class="keyword">self</span>) -&gt; Peekable&lt;<span class="keyword">Self</span>&gt;</span><br></pre></td></tr></table></figure>
+
+<p>每定义一个新的方法，你就需要定义一个新的结构体（因为你不能在同一个结构体上实现同一个trait两次），然后再在结构体上实现trait的方法。这种代码风格Java程序员一定很熟悉，我把他称为实名内部类。如果比Iterator官方实现的代码长度，Rust肯定是首屈一指的。</p>
+<p>如果只是代码长倒不是很大的问题，毕竟我是一名Java程序员。</p>
+<p>再看一个具体一点的问题：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">flat_map</span></span>&lt;U, F&gt;(<span class="keyword">self</span>, f: F) -&gt; FlatMap&lt;<span class="keyword">Self</span>, U, F&gt;</span><br><span class="line"><span class="keyword">where</span> <span class="keyword">Self</span>: <span class="built_in">Sized</span>, U: <span class="built_in">IntoIterator</span>, F: <span class="built_in">FnMut</span>(Self::Item) -&gt; U,</span><br><span class="line">&#123;</span><br><span class="line">    FlatMap::new(<span class="keyword">self</span>, f)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>F</code>（这里代表一个函数）的返回值类型<code>U</code>是根据类型推导来的，这就造成一个问题，假如函数中有if else或者模式匹配这样的分支，两个分支的类型会对不上。注意这里如果不用return，if表达式的类型就已经对不上了（在Rust中if else是一个表达式，和Scala类似）。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> j = (<span class="number">1</span>..<span class="number">9</span>).flat_map(|x|&#123;</span><br><span class="line">    <span class="keyword">if</span> (x % <span class="number">2</span>) == <span class="number">0</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> empty();</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">vec!</span>[x].iter();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;).collect();</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">error[E0308]: mismatched types</span><br><span class="line"> --&gt; src/main.rs:8:16</span><br><span class="line">  |</span><br><span class="line">8 |         return vec![x].iter();</span><br><span class="line">  |                ^^^^^^^^^^^^^^ expected struct `std::iter::Empty`, found struct `std::slice::Iter`</span><br><span class="line">  |</span><br><span class="line">  = note: expected type `std::iter::Empty&lt;_&gt;`</span><br><span class="line">             found type `std::slice::Iter&lt;&#x27;_, &#123;integer&#125;&gt;`</span><br></pre></td></tr></table></figure>
+
+<p>假如你的代码里出现了分支，其中一个用的map,另外一个用的filter,那他类型是对不上的，甚至于说都是map,闭包的类型也对不上（闭包是Map的类型参数）。</p>
+<blockquote>
+<p>如果你听说Rust支持type class，想来搞点函数式，你是否搞错了什么？</p>
+</blockquote>
+<h2 id="面向对象"><a href="#面向对象" class="headerlink" title="面向对象"></a>面向对象</h2><blockquote>
+<p>你不要把FP那套东西搞过来，同时也不要OOP那套东西搞过来，Rust就是Rust。</p>
+</blockquote>
+<p>Rust可以用trait object来表达多态，但是编译器需要在编译期知道函数的参数、局部变量的大小，所以这里必须套上一个引用或者Box。而且编译器对trait object有额外的限制：</p>
+<blockquote>
+<p>Object Safety Is Required for Trait Objects<br>You can only make object-safe traits into trait objects. Some complex rules govern all the properties that make a trait object safe, but in practice, only two rules are relevant. A trait is object safe if <strong>all the methods</strong> defined in the trait have the following properties:</p>
+<ul>
+<li>The return type isn’t Self.</li>
+<li>There are no generic type parameters.</li>
+</ul>
+</blockquote>
+<p><a target="_blank" rel="noopener" href="https://doc.rust-lang.org/book/ch17-02-trait-objects.html">https://doc.rust-lang.org/book/ch17-02-trait-objects.html</a></p>
+<p><strong>所有的</strong>方法都不能有泛型参数，零<del>成本</del>抽象。不过在老一点的文档里有另外一条，这一点我也认为非常坑爹，Rust的文档散落在世界的各个角落里。</p>
+<blockquote>
+<p>你渴望力量吗？</p>
+</blockquote>
+<p><a target="_blank" rel="noopener" href="https://doc.rust-lang.org/book/title-page.html">https://doc.rust-lang.org/book/title-page.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://doc.rust-lang.org/edition-guide/rust-2018/index.html">https://doc.rust-lang.org/edition-guide/rust-2018/index.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://doc.rust-lang.org/1.19.0/book/first-edition/README.html">https://doc.rust-lang.org/1.19.0/book/first-edition/README.html</a></p>
+<p>在<strong>老版</strong>的Rust Book里面关于object safety有更详细的描述：</p>
+<blockquote>
+<p>The error says that <code>Clone</code> is not ‘object-safe’. Only traits that are object-safe can be made into trait objects. A trait is object-safe if both of these are true:</p>
+<ul>
+<li>the trait does not require that <code>Self: Sized</code></li>
+<li>all of its methods are object-safe</li>
+</ul>
+<p>So what makes a method object-safe? Each method must require that <code>Self: Sized</code> or all of the following:</p>
+<ul>
+<li>must not have any type parameters</li>
+<li>must not use <code>Self</code></li>
+</ul>
+</blockquote>
+<p>Each method must require that <code>Self: Sized</code> <strong>or</strong> all of the following…</p>
+<p>新版不仅把这句话删了，我不知道是怎么想的。这里可以理解为加了<code>Self: Sized</code> 就可以绕过这个限制，与此同时trait object就不能再调用这个方法了，<del>欲练此功，必先自宫</del>。</p>
+<p>依据这一条，我们可以这样来定义Iterator。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">trait</span> <span class="title">Iterator</span></span>&lt;E&gt;&#123;</span><br><span class="line">    <span class="function"><span class="keyword">fn</span> <span class="title">next</span></span>(&amp;<span class="keyword">mut</span> <span class="keyword">self</span>) -&gt; E;</span><br><span class="line">    <span class="function"><span class="keyword">fn</span> <span class="title">flat_map</span></span>&lt;B,F&gt;(<span class="keyword">self</span>,f: F) -&gt; FlatMap&lt;<span class="keyword">Self</span>,F&gt; </span><br><span class="line">    <span class="keyword">where</span> <span class="keyword">Self</span>: <span class="built_in">Sized</span>,F: <span class="built_in">Fn</span>(E) -&gt; <span class="built_in">Box</span>&lt;<span class="keyword">dyn</span> <span class="built_in">Iterator</span>&lt;B&gt;&gt;&#123;</span><br><span class="line">        Map(<span class="keyword">self</span>,f)</span><br><span class="line">    &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>缺点就是你需要在各种地方套Box。</p>
+<h2 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h2><blockquote>
+<p>叔叔，叔叔，听说你们这个语言写不了链表是吗？</p>
+</blockquote>
+<p>Rust的引用规则很简单：可变引用可以同时存在多个，不可以引用同时只能存在一个，而可变引用存在的时候不能创建不可变引用。</p>
+<p>常见的链表next是一个可变引用，tail指针也是可变的，他们同时指向链表的最后一个节点，这是Rust绕不过去的坎。</p>
+<p>规则简单，不代表他用起来容易。你可以看到这个规则，就马上想到Rust不用unsafe无法实现链表，然后享受一个周末而不是和编译器死磕吗？</p>
+<h3 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h3><blockquote>
+<p>王垠：rust所谓的生命周期就是把引用计数限制为1，那处理起来当然简单了。</p>
+</blockquote>
+<p>不得不佩服王垠的敏锐，那么这句话要如何理解呢？因为看上去rust允许多个不可变引用。</p>
+<p>这也是生命周期的设计理念，引用的生命周期被包含在值的生命周期内，所以他可以直接忽略，由所有者负责释放，而所有者就是那个1。这也是为什么你想在线程之间传引用通常是一个错误的选择。</p>
+<p>而可变引用的不同之处在于，假如把引用指向另外一个值，他需要释放前一个值。</p>
+<blockquote>
+<p>这都不知道？再去看看TRPL吧，都在里面。</p>
+</blockquote>
+<h2 id="TRPL"><a href="#TRPL" class="headerlink" title="TRPL"></a>TRPL</h2><p>说到这里就不得不提<code>The Rust Programming Language</code>，Rust吹们把他简称为TRPL以示尊敬。你必须知道它，同时也必须知道这个缩写。</p>
+<p>那么TRPL，有没有那么详细？显然是没有的，首先他相对于老的文档做过一定的删减，比如上面提到的trait object。那回到正题，我认为这篇文档漏掉了一个相当重要的东西就是<code>std::mem::replace</code>，Option里把他包装成<code>take</code>。他的作用是把旧的值取出来，同时给一个新值。这样我们就可以对原来的值随意操作了。我认为在你知道这个东西之前，你可能至少会浪费一个星期尝试去对可变引用做模式匹配，直到你知道有这个东西，或者精通unsafe。</p>
+<p>比如，假如我想把栈顶取出来，然后向后挪一位，可能会这么实现。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">enum</span> <span class="title">Stack</span></span>&lt;E&gt; &#123;</span><br><span class="line">    More(E,<span class="built_in">Box</span>&lt;Stack&lt;E&gt;&gt;),</span><br><span class="line">    Less</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">impl</span> &lt;E&gt; Stack&lt;E&gt; &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fn</span> <span class="title">new</span></span>() -&gt; Stack&lt;E&gt;&#123;</span><br><span class="line">        Stack::Less</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">fn</span> <span class="title">pop</span></span>(&amp;<span class="keyword">mut</span> <span class="keyword">self</span>) -&gt; <span class="built_in">Option</span>&lt;E&gt;&#123;</span><br><span class="line">        <span class="keyword">match</span> <span class="keyword">self</span> &#123;</span><br><span class="line">            Stack::More(item,next) =&gt; &#123;</span><br><span class="line">                *<span class="keyword">self</span> = **next;</span><br><span class="line">                <span class="literal">Some</span>(*item)</span><br><span class="line">            &#125;,</span><br><span class="line">            Stack::Less =&gt; <span class="literal">None</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么你显然犯了错误，self可变引用存在的同时，模式匹配会创建新的引用。那有了replace，就可以这样写。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">pop</span></span>(&amp;<span class="keyword">mut</span> <span class="keyword">self</span>) -&gt; <span class="built_in">Option</span>&lt;E&gt;&#123;</span><br><span class="line">    <span class="keyword">let</span> pre = std::mem::replace(<span class="keyword">self</span>, Stack::Less);</span><br><span class="line">    <span class="keyword">match</span> pre &#123;</span><br><span class="line">        Stack::More(item,next) =&gt; &#123;</span><br><span class="line">            *<span class="keyword">self</span> = *next;</span><br><span class="line">            <span class="literal">Some</span>(item)</span><br><span class="line">        &#125;,</span><br><span class="line">        Stack::Less =&gt; <span class="literal">None</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是这显然不够<strong>零成本抽象</strong>，因为Less是一个垃圾值，随后就会被释放掉。当然你也可以用unsafe。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">pop</span></span>(&amp;<span class="keyword">mut</span> <span class="keyword">self</span>) -&gt; <span class="built_in">Option</span>&lt;E&gt;&#123;</span><br><span class="line">    <span class="keyword">match</span> <span class="keyword">unsafe</span>&#123;std::ptr::read(<span class="keyword">self</span>)&#125; &#123;</span><br><span class="line">        Stack::More(item,next) =&gt; &#123;</span><br><span class="line">            <span class="keyword">unsafe</span>&#123;std::ptr::write(<span class="keyword">self</span>, *next)&#125;</span><br><span class="line">            <span class="literal">Some</span>(item)</span><br><span class="line">        &#125;,</span><br><span class="line">        Stack::Less =&gt; <span class="literal">None</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>什么，竟然有人在用unsafe? unsafe 警察，出警👮‍♀️！</p>
+</blockquote>
+<h2 id="学习成本"><a href="#学习成本" class="headerlink" title="学习成本"></a>学习成本</h2><blockquote>
+<p>很多人以为Rust学习成本很高，他只不过把复杂的部分都暴露出来了。</p>
+</blockquote>
+<p>不，Rust的学习成本比你想象的还要高。不仅仅是学习语法，而是花大量但时间总结在这一套限制之下该如何写代码。正如同学习如何戴着镣铐跳舞💃💃💃。</p>
+<p>那么Rust值得吗？</p>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#trait%E4%B8%8D%E6%98%AF%E7%B1%BB%E5%9E%8B%EF%BC%8C%E5%90%8C%E6%97%B6%E4%B9%9F%E4%B8%8D%E6%94%AF%E6%8C%81%E5%AD%90%E7%B1%BB%E5%9E%8B"><span class="toc-number">1.</span> <span class="toc-text">trait不是类型，同时也不支持子类型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BB%B6%E6%97%B6%E6%B1%82%E5%80%BC"><span class="toc-number">2.</span> <span class="toc-text">延时求值</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1"><span class="toc-number">3.</span> <span class="toc-text">面向对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%95%E7%94%A8"><span class="toc-number">4.</span> <span class="toc-text">引用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F"><span class="toc-number">4.1.</span> <span class="toc-text">生命周期</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#TRPL"><span class="toc-number">5.</span> <span class="toc-text">TRPL</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%A6%E4%B9%A0%E6%88%90%E6%9C%AC"><span class="toc-number">6.</span> <span class="toc-text">学习成本</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://ezksd.github.io/2019/06/02/rust/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://ezksd.github.io/2019/06/02/rust/&text=Rust的缺点"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://ezksd.github.io/2019/06/02/rust/&title=Rust的缺点"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://ezksd.github.io/2019/06/02/rust/&is_video=false&description=Rust的缺点"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Rust的缺点&body=Check out this article: https://ezksd.github.io/2019/06/02/rust/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://ezksd.github.io/2019/06/02/rust/&title=Rust的缺点"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://ezksd.github.io/2019/06/02/rust/&title=Rust的缺点"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://ezksd.github.io/2019/06/02/rust/&title=Rust的缺点"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://ezksd.github.io/2019/06/02/rust/&title=Rust的缺点"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://ezksd.github.io/2019/06/02/rust/&name=Rust的缺点&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://ezksd.github.io/2019/06/02/rust/&t=Rust的缺点"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2015-2021
+    ezksd
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+
+<link rel="stylesheet" href="/lib/justified-gallery/css/justifiedGallery.min.css">
+
+
+    <!-- jquery -->
+
+<script src="/lib/jquery/jquery.min.js"></script>
+
+
+<script src="/lib/justified-gallery/js/jquery.justifiedGallery.min.js"></script>
+
+<!-- clipboard -->
+
+  
+<script src="/lib/clipboard/clipboard.min.js"></script>
+
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-104406812-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-104406812-1');
+    </script>
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'ezksd-1';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
+</body>
+</html>

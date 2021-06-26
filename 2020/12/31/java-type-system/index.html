@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="description" content="κiζsヤ當非主流成為主流シjava一直是面向对象语言的代表。目前大部分语言都支持面向对象，同时面向对象的概念也变得模糊。  Java的面向对象主要有两点：  数据和函数打包，在这里函数称为方法，他的第一个参数默认是this。 基于继承和子类型的类型系统。  这两点又有一点交叉，this指向的对象类型不同，会分派到不同的方法（虚方法）。而对于第一点，他又和闭包类似，Java8以前用对象来模拟函">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java类型系统">
+<meta property="og:url" content="https://ezksd.github.io/2020/12/31/java-type-system/index.html">
+<meta property="og:site_name" content="Ezksd">
+<meta property="og:description" content="κiζsヤ當非主流成為主流シjava一直是面向对象语言的代表。目前大部分语言都支持面向对象，同时面向对象的概念也变得模糊。  Java的面向对象主要有两点：  数据和函数打包，在这里函数称为方法，他的第一个参数默认是this。 基于继承和子类型的类型系统。  这两点又有一点交叉，this指向的对象类型不同，会分派到不同的方法（虚方法）。而对于第一点，他又和闭包类似，Java8以前用对象来模拟函">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-12-31T00:48:14.000Z">
+<meta property="article:modified_time" content="2021-06-26T13:14:30.033Z">
+<meta property="article:author" content="ezksd">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon-192x192.png">
+        
+      
+    
+    <!-- title -->
+    <title>Java类型系统</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+      
+<link rel="stylesheet" href="/css/rtl.css">
+
+    
+    <!-- rss -->
+    
+    
+      <link rel="alternate" href="/true" title="Ezksd" type="application/atom+xml" />
+    
+<!-- hexo injector head_end start -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css">
+<!-- hexo injector head_end end --><meta name="generator" content="Hexo 5.4.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+        
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" href="/2021/01/09/java-direct-io/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" href="/2020/08/27/nio/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">Previous post</span>
+      <span id="i-next" class="info" style="display:none;">Next post</span>
+      <span id="i-top" class="info" style="display:none;">Back to top</span>
+      <span id="i-share" class="info" style="display:none;">Share post</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://ezksd.github.io/2020/12/31/java-type-system/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://ezksd.github.io/2020/12/31/java-type-system/&text=Java类型系统"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://ezksd.github.io/2020/12/31/java-type-system/&title=Java类型系统"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://ezksd.github.io/2020/12/31/java-type-system/&is_video=false&description=Java类型系统"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Java类型系统&body=Check out this article: https://ezksd.github.io/2020/12/31/java-type-system/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://ezksd.github.io/2020/12/31/java-type-system/&title=Java类型系统"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://ezksd.github.io/2020/12/31/java-type-system/&title=Java类型系统"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://ezksd.github.io/2020/12/31/java-type-system/&title=Java类型系统"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://ezksd.github.io/2020/12/31/java-type-system/&title=Java类型系统"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://ezksd.github.io/2020/12/31/java-type-system/&name=Java类型系统&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://ezksd.github.io/2020/12/31/java-type-system/&t=Java类型系统"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E4%B8%AA%E5%8F%8D%E7%9B%B4%E8%A7%89%E7%9A%84%E4%BE%8B%E5%AD%90"><span class="toc-number">1.</span> <span class="toc-text">一个反直觉的例子</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%98%E5%9C%A8%E7%B1%BB%E5%9E%8B"><span class="toc-number">2.</span> <span class="toc-text">存在类型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9E%E5%88%B0java"><span class="toc-number">3.</span> <span class="toc-text">回到java</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3"><span class="toc-number">4.</span> <span class="toc-text">如何理解</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#java%E9%87%8C%E8%BF%98%E6%9C%89%E4%B8%80%E4%BA%9B%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7%EF%BC%8C%E4%B8%8D%E8%BF%87%E9%80%82%E7%94%A8%E8%8C%83%E5%9B%B4%E6%AF%94%E8%BE%83%E5%B1%80%E9%99%90"><span class="toc-number">5.</span> <span class="toc-text">java里还有一些高级特性，不过适用范围比较局限</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%A4%E7%B1%BB%E5%9E%8B"><span class="toc-number">5.1.</span> <span class="toc-text">交类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B9%B6%E7%B1%BB%E5%9E%8B"><span class="toc-number">5.2.</span> <span class="toc-text">并类型</span></a></li></ol></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Java类型系统
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">ezksd</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2020-12-31T00:48:14.000Z" itemprop="datePublished">2020-12-31</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fas fa-archive"></i>
+        <a class="category-link" href="/categories/java/">java</a> › <a class="category-link" href="/categories/rust/">rust</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <blockquote>
+<p>κiζsヤ當非主流成為主流シ<br>java一直是面向对象语言的代表。目前大部分语言都支持面向对象，同时面向对象的概念也变得模糊。</p>
+</blockquote>
+<p>Java的面向对象主要有两点：</p>
+<ol>
+<li>数据和函数打包，在这里函数称为方法，他的第一个参数默认是this。</li>
+<li>基于继承和子类型的类型系统。</li>
+</ol>
+<p>这两点又有一点交叉，this指向的对象类型不同，会分派到不同的方法（虚方法）。而对于第一点，他又和闭包类似，Java8以前用对象来模拟函数，事实上展示了两者的共性。而这种设计暗示对象是有状态的，这种设计和函数式不同。在函数式编程中，可变状态应该从参数中传入，从返回值中取出。</p>
+<p>而第二点，一直被各种黑的假范型，以及为了兼容裸类型做出的妥协（通配符），也是这个语言最独特（恶心）的地方。</p>
+<h2 id="一个反直觉的例子"><a href="#一个反直觉的例子" class="headerlink" title="一个反直觉的例子"></a>一个反直觉的例子</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> &lt;E&gt; <span class="function"><span class="keyword">void</span> <span class="title">test</span><span class="params">(List&lt;E&gt; l1,List&lt;E&gt; l2)</span></span>&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    List&lt;?&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">    test(list, list);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">Main.java:12: error: method <span class="built_in">test</span> <span class="keyword">in</span> class Main cannot be applied to given types;</span><br><span class="line">        <span class="built_in">test</span>(list, list);</span><br><span class="line">        ^</span><br><span class="line">  required: List&lt;E&gt;,List&lt;E&gt;</span><br><span class="line">  found:    List&lt;CAP<span class="comment">#1&gt;,List&lt;CAP#2&gt;</span></span><br><span class="line">  reason: inference variable E has incompatible equality constraints CAP<span class="comment">#2,CAP#1</span></span><br><span class="line">  <span class="built_in">where</span> E is a type-variable:</span><br><span class="line">    E extends Object declared <span class="keyword">in</span> method &lt;E&gt;<span class="built_in">test</span>(List&lt;E&gt;,List&lt;E&gt;)</span><br><span class="line">  <span class="built_in">where</span> CAP<span class="comment">#1,CAP#2 are fresh type-variables:</span></span><br><span class="line">    CAP<span class="comment">#1 extends Object from capture of ?</span></span><br><span class="line">    CAP<span class="comment">#2 extends Object from capture of ?</span></span><br><span class="line">1 error</span><br></pre></td></tr></table></figure>
+
+<p>错误提示了这两个<code>List&lt;E&gt;</code>不是一个东西，在不同的地方代表着不同的类型。假如我们想暗示两个参数是同一个类型，像这样：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> &lt;E,L extends List&lt;E&gt;&gt; <span class="function"><span class="keyword">void</span> <span class="title">test</span><span class="params">(L l1,L l2)</span></span>&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    List&lt;?&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">    test(list, list);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Main.java:12: error: method <span class="built_in">test</span> <span class="keyword">in</span> class Main cannot be applied to given types;</span><br><span class="line">        <span class="built_in">test</span>(list, list);</span><br><span class="line">        ^</span><br><span class="line">  required: L,L</span><br><span class="line">  found:    List&lt;CAP<span class="comment">#1&gt;,List&lt;CAP#2&gt;</span></span><br><span class="line">  reason: inference variable E has incompatible equality constraints CAP<span class="comment">#1,CAP#2</span></span><br><span class="line">  <span class="built_in">where</span> L,E are type-variables:</span><br><span class="line">    L extends List&lt;E&gt; declared <span class="keyword">in</span> method &lt;E,L&gt;<span class="built_in">test</span>(L,L)</span><br><span class="line">    E extends Object declared <span class="keyword">in</span> method &lt;E,L&gt;<span class="built_in">test</span>(L,L)</span><br><span class="line">  <span class="built_in">where</span> CAP<span class="comment">#1,CAP#2 are fresh type-variables:</span></span><br><span class="line">    CAP<span class="comment">#1 extends Object from capture of ?</span></span><br><span class="line">    CAP<span class="comment">#2 extends Object from capture of ?</span></span><br><span class="line">1 error</span><br></pre></td></tr></table></figure>
+
+<p>依然不能通过编译，问题在于List的元素类型对不上。于是我们加上<code>? extends E</code>，l1和l2的类型参数依然不同，但这一次E代表这两个类型的共同上界。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> &lt;E,L extends List&lt;? extends E&gt;&gt; <span class="function"><span class="keyword">void</span> <span class="title">test</span><span class="params">(L l1,L l2)</span></span>&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    List&lt;?&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">    test(list, list);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="存在类型"><a href="#存在类型" class="headerlink" title="存在类型"></a>存在类型</h2><p>此处不深入讨论类型论，而且我也不懂，仅展示存在类型和范型之间的区别。以Rust为例，这个语言就不支持子类型，同时Rust中的闭包又如此特别。比如：</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">main</span></span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> i = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">let</span> j = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut</span> f = || i;</span><br><span class="line">    f = || j;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">= note: expected closure `[closure@src/main.rs:4:17: 4:21]`</span><br><span class="line">            found closure `[closure@src/main.rs:5:9: 5:13]`</span><br><span class="line">= note: no two closures, even <span class="keyword">if</span> identical, have the same <span class="built_in">type</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>世界上没有两片相同的叶子，Rust里也没有两个相同的closuure</p>
+</blockquote>
+<p>而一个独一无二的东西，在不支持子类型的同时，要如何表示他的类型呢？答案就是存在类型。</p>
+<figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fn</span> <span class="title">closure</span></span>() -&gt; <span class="keyword">impl</span> <span class="built_in">Fn</span>() -&gt; <span class="built_in">i32</span>&#123;</span><br><span class="line">    <span class="keyword">let</span> i = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">move</span> || i</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>返回值在函数内部给出，此时编译器已经不能通过类型推导来帮我们做决定了，这也是存在类型在Rust中的用处。</p>
+<h2 id="回到java"><a href="#回到java" class="headerlink" title="回到java"></a>回到java</h2><p>java的范型也有一些类似，他是不变的（相对于协变和逆变），比如常见的例子:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">Fruit</span> </span>&#123;&#125;</span><br><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Apple</span> <span class="keyword">implements</span> <span class="title">Fruit</span></span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    LinkedList&lt;Fruit&gt; list = <span class="keyword">new</span> LinkedList&lt;Apple&gt;();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java: incompatible types: java.util.LinkedList&lt;com.company.Main.Apple&gt; cannot be converted to java.util.LinkedList&lt;com.company.Main.Fruit&gt;</span><br></pre></td></tr></table></figure>
+
+<p>这个例子是一个协变的逻辑，而<code>List&lt;Fruit&gt;</code>的在类型参数Fruit处是不变的。java的协变与其他语言（c#,scala)区别在于java的协变逻辑在使用的时候给出，而其他语言在定义的时候给出。或者说他可能和协变本身就不一样，java语言规范中关于协变唯二提到的部分是虚方法中的返回值协变，以及协变返回值方法和方法覆盖之间的关系。</p>
+<p>而这一点也同样指出了返回值和参数类型推导的不同。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">List&lt;String&gt; <span class="title">test</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> (List&lt;? extends String&gt;)<span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>显然这份代码也无法通过编译，因为返回值协变的前提是<strong>返回值</strong>的<strong>类型</strong>必须是方法标出的<strong>返回值类型</strong>的子类型。</p>
+<h2 id="如何理解"><a href="#如何理解" class="headerlink" title="如何理解"></a>如何理解</h2><p>存在类型如此难以理解和反直觉，在Rust语言中也同样是一个槛。和其他的语法限制一样，他包含两部分：</p>
+<ol>
+<li>如何理解语法本身</li>
+<li>在限制之下如何去写代码</li>
+</ol>
+<p>我认为第二部分更加重要，比如Rust的lifetime和ownership本身并不难理解，但是形成一套什么样的代码是合法的直觉相当的困难。</p>
+<p>从这一点上来说，在什么时候用协变逆变可以参考scala的说法：</p>
+<blockquote>
+<p>These positions are classied as covariant for the types of immutable fields and method results, and contravariant for method argument types and upper type parameter bounds. Type arguments to a non-variant type parameter are always in non-variant position. The position flips between contra- and co-variant inside a type argument that corresponds to a contravariant parameter. The type system enforces that covariant (respectively, contravariant) type parameters are only used in covariant (contravariant) positions.</p>
+</blockquote>
+<p>简要来说代表不可变的字段和返回值的类型参数是协变的，而代表方法的参数和类型参数上界的类型参数是逆变的，在逆变参数的内部协/逆变又是反过来的。他们同时出现的时候就会特别阴间：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> &lt;T&gt; <span class="function"><span class="keyword">void</span> <span class="title">sort</span><span class="params">(List&lt;? extends Comparable&lt;? <span class="keyword">super</span> T&gt;&gt; list)</span> </span>&#123;</span><br><span class="line">    list.sort(<span class="keyword">null</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>这是标准库中的代码</strong>，List的元素类型是协变的，Comparable的类型参数是compareTo的参数的类型是逆变的。</p>
+<p>协变相对于逆变更容易理解，一个集合类型存储着不同的元素，这些元素有公共父类型。但协变的前提是集合不可变，这也是为什么java的协变数组是有问题的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">Fruit</span> </span>&#123;&#125;</span><br><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Apple</span> <span class="keyword">implements</span> <span class="title">Fruit</span></span>&#123;&#125;</span><br><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Orange</span> <span class="keyword">implements</span> <span class="title">Fruit</span></span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    Fruit[] fruit = <span class="keyword">new</span> Apple[<span class="number">1</span>];</span><br><span class="line">    fruit[<span class="number">0</span>] = <span class="keyword">new</span> Orange();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Exception <span class="keyword">in</span> thread <span class="string">&quot;main&quot;</span> java.lang.ArrayStoreException: com.company.Main<span class="variable">$Orange</span></span><br><span class="line">    at com.company.Main.main(Main.java:17)</span><br></pre></td></tr></table></figure>
+
+<p>而理解逆变的关键在于应该把函数作为一个整体，而不是单独去看类型参数为什么应该是下界（super)。可变性本身描述的就是假如A是B的子类型，两个值之间的子类型关系。而对于函数来说，一个函数类型A对于另一个函数类型B适用面更广，那么A类型的值可以出现在要求出现B类型的地方。</p>
+<p>以水果为例，假设水果之间可以比较重量。如果不标出下界，父类已经实现了Comparable接口，但是不能编译通过，这无形中限制了代码的表达能力。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">Fruit</span> <span class="keyword">extends</span> <span class="title">Comparable</span>&lt;<span class="title">Fruit</span>&gt; </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">default</span> <span class="keyword">int</span> <span class="title">compareTo</span><span class="params">(Fruit o)</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Apple</span> <span class="keyword">implements</span> <span class="title">Fruit</span></span>&#123;&#125;</span><br><span class="line"><span class="keyword">static</span> &lt;T extends Comparable&lt;T&gt;&gt; <span class="function"><span class="keyword">void</span> <span class="title">sort1</span><span class="params">(List&lt;T&gt; list)</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">static</span> &lt;T extends Comparable&lt;? <span class="keyword">super</span> T&gt;&gt; <span class="function"><span class="keyword">void</span> <span class="title">sort2</span><span class="params">(List&lt;T&gt; list)</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span></span>&#123;</span><br><span class="line">    ArrayList&lt;Apple&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">    sort1(list);  <span class="comment">//编译错误</span></span><br><span class="line">    sort2(list);  <span class="comment">//合法</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="java里还有一些高级特性，不过适用范围比较局限"><a href="#java里还有一些高级特性，不过适用范围比较局限" class="headerlink" title="java里还有一些高级特性，不过适用范围比较局限"></a>java里还有一些高级特性，不过适用范围比较局限</h2><h3 id="交类型"><a href="#交类型" class="headerlink" title="交类型"></a>交类型</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">ha</span><span class="params">()</span></span>&#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">B</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">he</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&lt;T extends A &amp; B&gt; <span class="function"><span class="keyword">void</span> <span class="title">fun</span><span class="params">(T t)</span></span>&#123;</span><br><span class="line">    t.ha();</span><br><span class="line">    t.he();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由于Java本身不支持多继承，交类型里只能有一个class而且只能放在第一位。</p>
+<h3 id="并类型"><a href="#并类型" class="headerlink" title="并类型"></a>并类型</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span> <span class="keyword">extends</span> <span class="title">Exception</span></span>&#123;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">B</span> <span class="keyword">extends</span> <span class="title">Exception</span></span>&#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">fun</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">if</span>(flag)</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> A();</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> B();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (A | B a) &#123;</span><br><span class="line">        a.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>只能在异常块中使用，表示可能出现的异常类型。</p>
+
+  </div>
+</article>
+
+    <div class="blog-post-comments">
+        <div id="disqus_thread">
+            <noscript>Please enable JavaScript to view the comments.</noscript>
+        </div>
+    </div>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E4%B8%AA%E5%8F%8D%E7%9B%B4%E8%A7%89%E7%9A%84%E4%BE%8B%E5%AD%90"><span class="toc-number">1.</span> <span class="toc-text">一个反直觉的例子</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%98%E5%9C%A8%E7%B1%BB%E5%9E%8B"><span class="toc-number">2.</span> <span class="toc-text">存在类型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9E%E5%88%B0java"><span class="toc-number">3.</span> <span class="toc-text">回到java</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3"><span class="toc-number">4.</span> <span class="toc-text">如何理解</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#java%E9%87%8C%E8%BF%98%E6%9C%89%E4%B8%80%E4%BA%9B%E9%AB%98%E7%BA%A7%E7%89%B9%E6%80%A7%EF%BC%8C%E4%B8%8D%E8%BF%87%E9%80%82%E7%94%A8%E8%8C%83%E5%9B%B4%E6%AF%94%E8%BE%83%E5%B1%80%E9%99%90"><span class="toc-number">5.</span> <span class="toc-text">java里还有一些高级特性，不过适用范围比较局限</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%A4%E7%B1%BB%E5%9E%8B"><span class="toc-number">5.1.</span> <span class="toc-text">交类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B9%B6%E7%B1%BB%E5%9E%8B"><span class="toc-number">5.2.</span> <span class="toc-text">并类型</span></a></li></ol></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://ezksd.github.io/2020/12/31/java-type-system/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://ezksd.github.io/2020/12/31/java-type-system/&text=Java类型系统"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://ezksd.github.io/2020/12/31/java-type-system/&title=Java类型系统"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://ezksd.github.io/2020/12/31/java-type-system/&is_video=false&description=Java类型系统"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Java类型系统&body=Check out this article: https://ezksd.github.io/2020/12/31/java-type-system/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://ezksd.github.io/2020/12/31/java-type-system/&title=Java类型系统"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://ezksd.github.io/2020/12/31/java-type-system/&title=Java类型系统"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://ezksd.github.io/2020/12/31/java-type-system/&title=Java类型系统"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://ezksd.github.io/2020/12/31/java-type-system/&title=Java类型系统"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://ezksd.github.io/2020/12/31/java-type-system/&name=Java类型系统&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://ezksd.github.io/2020/12/31/java-type-system/&t=Java类型系统"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> Menu</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> TOC</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> Share</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> Top</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2015-2021
+    ezksd
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+         
+          <li><a href="/">Home</a></li>
+         
+          <li><a href="/archives/">Writing</a></li>
+         
+          <li><a href="/categories/">Categories</a></li>
+        
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+
+<link rel="stylesheet" href="/lib/justified-gallery/css/justifiedGallery.min.css">
+
+
+    <!-- jquery -->
+
+<script src="/lib/jquery/jquery.min.js"></script>
+
+
+<script src="/lib/justified-gallery/js/jquery.justifiedGallery.min.js"></script>
+
+<!-- clipboard -->
+
+  
+<script src="/lib/clipboard/clipboard.min.js"></script>
+
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"Copy to clipboard!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "Copied!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-104406812-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'UA-104406812-1');
+    </script>
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+    <script type="text/javascript">
+        var disqus_shortname = 'ezksd-1';
+
+        (function(){
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        }());
+    </script>
+
+
+</body>
+</html>
